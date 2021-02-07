@@ -54,6 +54,15 @@ namespace banking {
       void selectAccount(int transaction_token, long account_no);
 
       /**
+       * @brief handle the transaction after doing it with the account
+       *
+       * @param transaction_token
+       * @param trans_type
+       * @param amount
+       */
+      void performTransaction(int transaction_token, TransactionType &trans_type, int amount);
+
+      /**
        * @brief Generate atm id for new atms
        *
        * @return atm if
@@ -228,7 +237,7 @@ namespace banking {
        *
        * @param token
        */
-      void throwSession(int token);
+      void throwSession(int token, bool throw_it = true);
 
     public:
       /**

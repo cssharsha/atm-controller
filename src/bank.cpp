@@ -184,7 +184,56 @@ namespace banking {
       throwSession(transaction_token);
   }
 
-  void Bank::throwSession(int token) {
+  void Bank::performTransaction(int transaction_token, TransactionType &trans_type, int amount) {
+    long card_no;
+    LOG(INFO) << transaction_token << " " << trans_type << " " << amount;
+    if (!findInMap<int, long>(transaction_map_mutex_, transaction_map_, transaction_token, card_no)) {
+      LOG(ERROR) << "no transaction";
+      throwSession(transaction_token);
+      return;
+    }
+
+    account_card_pair_t account_card_pair;
+    if (!findInMap<long, account_card_pair_t>(account_cards_mutex_, account_cards_map_, card_no, account_card_pair)) {
+      LOG(ERROR) << "no account";
+      throwSession(transaction_token);
+      return;
+    }
+
+    if (account_card_pair.first->callAccountCallback(trans_type, amount)) {
+      atm_cb_t atm_cb;
+      if (findInMap<int, atm_cb_t>(atm_cb_mutex_, atm_cb_map_, transaction_token, atm_cb)) {
+        std::string display_msg;
+        AtmOperationType atm_op;
+        switch (trans_type) {
+          case DEPOSIT: atm_op = TAKE;
+                        display_msg = std::string("Give me the money");
+                        break;
+          case WITHDRAW: atm_op = GIVE;
+                         display_msg = std::string("Take your money");
+                         break;
+          case CHECK_BALANCE: atm_op = SHOW;
+                              display_msg = std::string("Show me the money!");
+                              break;
+        }
+        if (!atm_cb(atm_op, amount, std::string(display_msg))) {
+          TransactionType reverse_trans_type;
+          switch (trans_type) {
+            case DEPOSIT: reverse_trans_type = WITHDRAW;
+                          break;
+            case WITHDRAW: reverse_trans_type = DEPOSIT;
+                           break;
+          }
+          account_card_pair.first->callAccountCallback(reverse_trans_type, amount);
+        }
+        throwSession(transaction_token, false);
+      }
+    } else {
+      throwSession(transaction_token);
+    }
+  }
+
+  void Bank::throwSession(int token, bool throw_it) {
     long card_no;
     if (findInMap<int, long>(transaction_map_mutex_, transaction_map_, token, card_no)) {
       account_card_pair_t account_card_pair;
@@ -200,7 +249,7 @@ namespace banking {
 
     deleteFromMap<int, atm_cb_t>(atm_cb_mutex_, atm_cb_map_, token);
 
-    if (found)
+    if (found && throw_it)
       atm_cb(SHOW_ERROR, -1, "Corrupt transaction");
   }
 

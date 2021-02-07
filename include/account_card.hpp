@@ -81,9 +81,28 @@ namespace banking {
        */
       long& get_number() { return number_; }
 
+      /**
+       * @brief set the callback
+       *
+       * @param acc_b
+       * @return true/false
+       */
       bool set_account_callback(acc_cb_t &acc_b);
 
+      /**
+       * @brief reset the callback
+       *
+       */
       void reset_account_callback() { acc_cb_ = nullptr; }
+
+      /**
+       * @brief call the account callback
+       *
+       * @param trans_type
+       * @param amount
+       * @return true/false
+       */
+      bool callAccountCallback(TransactionType &trans_type, int amount);
 
     private:
       long number_;

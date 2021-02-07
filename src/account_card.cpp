@@ -16,15 +16,20 @@ namespace banking {
   bool Account::performTransaction(const TransactionType &trans_type, int &amount) {
     switch (trans_type) {
       case DEPOSIT: money_ += amount;
+                    LOG(INFO) << "Good deposit";
                     return true;
       case WITHDRAW: if (money_ >= amount) {
                        money_ -= amount;
+                       LOG(INFO) << "Good withdraw";
                        return true;
                      }
+                     LOG(WARNING) << "Bad withdraw";
                      return false;
       case CHECK_BALANCE: amount = money_;
-                          return false;
+                          LOG(INFO) << "Good check";
+                          return true;
     }
+    return false;
   }
 
   Card::Card(long card_no) : number_(card_no), pin_(8888) {
@@ -45,5 +50,12 @@ namespace banking {
     }
     acc_cb_ = acc_cb;
     return true;
+  }
+
+  bool Card::callAccountCallback(TransactionType &trans_type, int amount) {
+    if (acc_cb_ == nullptr)
+      return false;
+
+    return acc_cb_(trans_type, amount);
   }
 }

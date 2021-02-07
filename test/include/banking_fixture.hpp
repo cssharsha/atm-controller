@@ -23,6 +23,10 @@ class AtmControllerMock : AtmController {
     this->selectAccount(account_no);
   }
 
+  void callPerformTransaction(TransactionType trans_type, int amount = 0) {
+    this->performTransaction(trans_type, amount);
+  }
+
   MOCK_METHOD(bool, controllerDisplay, (AtmOperationType, int, std::string&&));
 };
 

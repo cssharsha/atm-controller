@@ -42,9 +42,16 @@ namespace banking {
     Bank::getBank()->selectAccount(transaction_.token_, account_no);
   }
 
+  void AtmController::performTransaction(TransactionType trans_type, int amount) {
+    Bank::getBank()->performTransaction(transaction_.token_, trans_type, amount);
+  }
+
   bool AtmController::controllerDisplay(AtmOperationType atm_op,
       int info, std::string &&display_msg) {
     LOG(INFO) << "Nothing doing right now: " << atm_op << ": " << info << " " << display_msg;
+
+    if (atm_op == SHOW_ERROR)
+      transaction_.token_ = -1;
     return true;
   }
 

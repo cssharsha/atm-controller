@@ -37,6 +37,8 @@ namespace banking {
        */
       void selectAccount(long account_no);
 
+      void performTransaction(TransactionType trans_type, int amount = 0);
+
       /**
        * @brief Callback function that bank calls
        *
