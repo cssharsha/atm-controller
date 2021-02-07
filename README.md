@@ -9,7 +9,6 @@ Simple atm controller interface
 `make`
 
 ## TODO
-
-Markup : 
-      * Add additional error handling in atm controller
-      * Add additional unit tests for the current failure in atm operations
+ 
+* Add additional error handling in atm controller
+* Add additional unit tests for the current failure in atm operations
