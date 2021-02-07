@@ -19,6 +19,10 @@ class AtmControllerMock : AtmController {
     this->insertCard(card_no, card_pin);
   }
 
+  void callSelectAccount(long account_no) {
+    this->selectAccount(account_no);
+  }
+
   MOCK_METHOD(bool, controllerDisplay, (AtmOperationType, int, std::string&&));
 };
 
@@ -33,6 +37,12 @@ class BankingFixture : public Test {
   BankingFixture() : holder_name("someone"), money(1000) {
     Bank::getBank()->createAndLinkAccount(holder_name, money);
     Bank::getBank()->privilegedOperation(HIDDEN_PASSCODE, holder_name, account_no, card_no);
+    for (const auto &acc:account_no)
+      LOG(INFO) << acc;
+  }
+
+  long selectAccount() {
+    return account_no[0];
   }
 
   void SetUp() override {

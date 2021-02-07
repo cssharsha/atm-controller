@@ -137,6 +137,73 @@ namespace banking {
     }
   }
 
+  void Bank::selectAccount(int transaction_token, long account_no) {
+    LOG(INFO) << "Selected account: " << transaction_token << " " << account_no;
+    long card_no;
+    atm_cb_t atm_cb;
+    if (!findInMap<int, long>(transaction_map_mutex_, transaction_map_, transaction_token, card_no)) {
+      LOG(ERROR) << "Not found!!!!";
+      throwSession(transaction_token);
+      return;
+    }
+
+    account_card_pair_t account_card_pair;
+
+    if (!findInMap<long, account_card_pair_t>(account_cards_mutex_,
+          account_cards_map_, card_no,
+          account_card_pair)) {
+      LOG(ERROR) << "Not found!!!!";
+      throwSession(transaction_token);
+      return;
+    }
+
+    AccountPtr account;
+    bool found = false;
+    for (auto &acc : account_card_pair.second) {
+      if (acc->get_id() == account_no) {
+        found = true;
+        account = acc;
+        break;
+      }
+    }
+    if (!found) {
+      LOG(ERROR) << "Not found!!!!";
+      throwSession(transaction_token);
+      return;
+    }
+
+    acc_cb_t f = std::bind(&Account::performTransaction, account,
+        std::placeholders::_1,
+        std::placeholders::_2);
+    account_card_pair.first->set_account_callback(f);
+    LOG(INFO) << "Calling input";
+
+    if (findInMap<int, atm_cb_t>(atm_cb_mutex_, atm_cb_map_, transaction_token, atm_cb))
+      atm_cb(SHOW_INPUT, 1, "Select transaction type");
+    else
+      throwSession(transaction_token);
+  }
+
+  void Bank::throwSession(int token) {
+    long card_no;
+    if (findInMap<int, long>(transaction_map_mutex_, transaction_map_, token, card_no)) {
+      account_card_pair_t account_card_pair;
+      if (findInMap<long, account_card_pair_t>(account_cards_mutex_, account_cards_map_,
+            card_no, account_card_pair)) {
+        account_card_pair.first->reset_account_callback();
+      }
+    }
+    deleteFromMap<int, long>(transaction_map_mutex_, transaction_map_, token);
+
+    atm_cb_t atm_cb;
+    bool found = findInMap<int, atm_cb_t>(atm_cb_mutex_, atm_cb_map_, token, atm_cb);
+
+    deleteFromMap<int, atm_cb_t>(atm_cb_mutex_, atm_cb_map_, token);
+
+    if (found)
+      atm_cb(SHOW_ERROR, -1, "Corrupt transaction");
+  }
+
   bool Bank::privilegedOperation(const int &passcode, const std::string &holder_name,
       std::vector<long> &account_no, long &card_no) {
     if (passcode != HIDDEN_PASSCODE) {
@@ -160,7 +227,9 @@ namespace banking {
     }
 
     if (found) {
+      LOG(INFO) << "Number of accounts: " << it->second.second.size();
       for (const auto &account:it->second.second) {
+        LOG(INFO) << account->get_id();
         account_no.push_back(account->get_id());
       }
       card_no = it->first;

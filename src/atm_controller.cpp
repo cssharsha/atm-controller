@@ -4,13 +4,12 @@
 
 namespace banking {
 
-  AtmController::AtmController() {
+  AtmController::AtmController() : transaction_() {
     atm_id_ = Bank::getBank()->get_atm_id();
-    transaction_ = std::make_unique<Transaction>();
   }
 
   void AtmController::insertCard(long card_no, int card_pin) {
-    if (transaction_->token_ >= 0) {
+    if (transaction_.token_ >= 0) {
       LOG(ERROR) << "A previous transaction already present";
       controllerDisplay(SHOW_ERROR, -1, "Transaction duplication");
       return;
@@ -31,10 +30,16 @@ namespace banking {
         std::placeholders::_3);
     try {
       Bank::getBank()->acknowledgeTransaction(transaction_token, f);
+      transaction_.token_ = transaction_token;
     } catch (std::exception &ex) {
       LOG(ERROR) << "Error acknowledging transaction: " << ex.what();
       controllerDisplay(SHOW_ERROR, -1, ex.what());
     }
+  }
+
+  void AtmController::selectAccount(long account_no) {
+    LOG(INFO) << "Selecting account";
+    Bank::getBank()->selectAccount(transaction_.token_, account_no);
   }
 
   bool AtmController::controllerDisplay(AtmOperationType atm_op,

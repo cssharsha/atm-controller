@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 namespace banking {
 
   enum AtmOperationType {
@@ -15,6 +17,8 @@ namespace banking {
     WITHDRAW,
     CHECK_BALANCE
   };
+
+  using acc_cb_t = std::function<bool(const TransactionType&, int&)>;
 
   class Account {
     public:
@@ -38,6 +42,15 @@ namespace banking {
        *
        */
       long get_id() { return id_; }
+
+      /**
+       * @brief Perfrom the secified transaction type
+       *
+       * @param trans_type
+       * @param amount
+       * @return true/false
+       */
+      bool performTransaction(const TransactionType &trans_type, int &amount);
 
     private:
       long id_;
@@ -68,8 +81,13 @@ namespace banking {
        */
       long& get_number() { return number_; }
 
+      bool set_account_callback(acc_cb_t &acc_b);
+
+      void reset_account_callback() { acc_cb_ = nullptr; }
+
     private:
       long number_;
       int pin_;
+      acc_cb_t acc_cb_;
   };
 }

@@ -20,6 +20,22 @@ TEST_F(BankingFixture, InorrectCardTest) {
   atm_mock.callInsertCard(card_no, 8899);
 }
 
+TEST_F(BankingFixture, SelectAccountTest) {
+  AtmControllerMock atm_mock;
+  EXPECT_CALL(atm_mock, controllerDisplay(SHOW_INPUT,_,_));
+  atm_mock.callInsertCard(card_no, 8888);
+  EXPECT_CALL(atm_mock, controllerDisplay(SHOW_INPUT,_,_));
+  atm_mock.callSelectAccount(selectAccount());
+}
+
+TEST_F(BankingFixture, SelectIncorrectAccountTest) {
+  AtmControllerMock atm_mock;
+  EXPECT_CALL(atm_mock, controllerDisplay(SHOW_INPUT,_,_));
+  atm_mock.callInsertCard(card_no, 8888);
+  EXPECT_CALL(atm_mock, controllerDisplay(SHOW_ERROR,_,_));
+  atm_mock.callSelectAccount(1000000);
+}
+
 int main(int argc, char **argv) {
   FLAGS_logtostderr = true;
   google::InitGoogleLogging(argv[0]);

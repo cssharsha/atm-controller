@@ -46,6 +46,14 @@ namespace banking {
       int verifyAndCreateTransaction(long card_no, int card_pin);
 
       /**
+       * @brief Select a particular account
+       *
+       * @param transaction_token
+       * @param account_no
+       */
+      void selectAccount(int transaction_token, long account_no);
+
+      /**
        * @brief Generate atm id for new atms
        *
        * @return atm if
@@ -198,6 +206,29 @@ namespace banking {
           if (!ret.second)
             throw std::runtime_error("Unable to add to map");
         }
+
+      /**
+       * @brief Delete an element from map
+       *
+       * @tparam T typename of key
+       * @tparam U typename of value
+       * @param mtx
+       * @param delete_map
+       * @param key
+       */
+      template <typename T, typename U>
+        void deleteFromMap(std::mutex &mtx,
+            std::map<T, U> &delete_map, T &key) {
+          std::lock_guard<std::mutex> lck(mtx);
+          delete_map.erase(key);
+        }
+
+      /**
+       * @brief Cleanup after an error condition
+       *
+       * @param token
+       */
+      void throwSession(int token);
 
     public:
       /**

@@ -31,6 +31,13 @@ namespace banking {
       void insertCard(long card_no, int card_pin);
 
       /**
+       * @brief Select account
+       *
+       * @param account_no
+       */
+      void selectAccount(long account_no);
+
+      /**
        * @brief Callback function that bank calls
        *
        * @param atm_operation
@@ -44,6 +51,6 @@ namespace banking {
 
     private:
       int atm_id_;
-      std::unique_ptr<Transaction> transaction_;
+      Transaction transaction_;
   };
 }
